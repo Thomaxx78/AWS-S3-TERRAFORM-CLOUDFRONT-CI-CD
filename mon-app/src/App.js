@@ -1,25 +1,23 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import "./App.css"; // importe le fichier CSS
 
 function App() {
   const [task, setTask] = useState("");
   const [todos, setTodos] = useState([]);
 
-  // Charger les tâches au démarrage
   useEffect(() => {
     fetchTodos();
   }, []);
 
   const fetchTodos = async () => {
-  try {
-    const res = await axios.get("http://localhost:3000/todos");
-    console.log("Todos reçus du backend:", res.data);
-    setTodos(res.data);
-  } catch (err) {
-    console.error("Erreur lors du chargement :", err);
-  }
-};
-
+    try {
+      const res = await axios.get("http://localhost:3000/todos");
+      setTodos(res.data);
+    } catch (err) {
+      console.error("Erreur lors du chargement :", err);
+    }
+  };
 
   const addTodo = async () => {
     if (!task.trim()) return;
@@ -31,29 +29,35 @@ function App() {
 
     try {
       await axios.post("http://localhost:3000/todos", newTask);
-      setTask(""); // Vide le champ
-      fetchTodos(); // Recharge la liste
+      setTask("");
+      fetchTodos();
     } catch (err) {
       console.error("Erreur lors de l'ajout :", err);
     }
   };
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="container">
       <h1>Ma Todo List</h1>
 
-      <input
-        type="text"
-        value={task}
-        onChange={(e) => setTask(e.target.value)}
-        placeholder="Nouvelle tâche"
-        style={{ marginRight: 10 }}
-      />
-      <button onClick={addTodo}>Ajouter</button>
+      <div className="input-group">
+        <input
+          type="text"
+          value={task}
+          onChange={(e) => setTask(e.target.value)}
+          placeholder="Nouvelle tâche"
+          className="task-input"
+        />
+        <button onClick={addTodo} className="btn-add">
+          Ajouter
+        </button>
+      </div>
 
-      <ul>
+      <ul className="todo-list">
         {todos.map((todo) => (
-          <li key={todo.id}>{todo.text}</li>
+          <li key={todo.id} className="todo-item">
+            {todo.text}
+          </li>
         ))}
       </ul>
     </div>
