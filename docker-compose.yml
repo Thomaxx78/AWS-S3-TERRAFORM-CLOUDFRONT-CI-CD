@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./mon-app
+    ports:
+      - "8080:80"
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - AWS_REGION=eu-west-3
+      - AWS_ACCESS_KEY_ID=your_key_if_needed
+      - AWS_SECRET_ACCESS_KEY=your_secret_if_needed
+    command: npm start
