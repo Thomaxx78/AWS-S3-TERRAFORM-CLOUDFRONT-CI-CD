@@ -1,53 +1,70 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const {
-  DynamoDBDocumentClient,
-  ScanCommand,
-  PutCommand,
-} = require("@aws-sdk/lib-dynamodb");
+import express from "express";
+import cors from "cors";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, ScanCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { getAWSCredentials } from "./secrets.js";
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
-const REGION = "eu-west-3";
-const TABLE_NAME = "todos";
+let docClient;
 
-const client = new DynamoDBClient({ region: REGION });
-const dynamo = DynamoDBDocumentClient.from(client);
+(async () => {
+  try {
+    // Récupère les creds de Secrets Manager
+    const creds = await getAWSCredentials();
+
+    // Configure DynamoDBClient avec ces creds
+    const client = new DynamoDBClient({
+      region: creds.region,
+      credentials: {
+        accessKeyId: creds.accessKeyId,
+        secretAccessKey: creds.secretAccessKey,
+      },
+    });
+
+    // Initialise le client DynamoDBDocumentClient
+    docClient = DynamoDBDocumentClient.from(client);
+
+    console.log("✅ DynamoDB connecté avec credentials depuis Secrets Manager");
+
+    // Démarre le serveur
+    app.listen(3000, () => {
+      console.log("✅ API is running on http://localhost:3000");
+    });
+  } catch (err) {
+    console.error("❌ Erreur lors de l'initialisation des credentials :", err);
+  }
+})();
 
 app.get("/todos", async (req, res) => {
   try {
-    const data = await dynamo.send(new ScanCommand({ TableName: TABLE_NAME }));
-    res.json(data.Items);
+    const data = await docClient.send(new ScanCommand({ TableName: "todos" }));
+    res.json(data.Items || []);
   } catch (err) {
-    console.error("Erreur backend GET /todos:", err);
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: "Erreur lors de la récupération des tâches" });
   }
 });
 
 app.post("/todos", async (req, res) => {
   const { id, text } = req.body;
+
+  if (!id || !text) {
+    return res.status(400).json({ error: "Champs id et text requis" });
+  }
+
   try {
-    if (!id || !text) {
-      throw new Error("id and text are required");
-    }
-    await dynamo.send(
+    await docClient.send(
       new PutCommand({
-        TableName: TABLE_NAME,
+        TableName: "todos",
         Item: { id, text },
       })
     );
-    res.json({ message: "Task added" });
+    res.status(201).json({ message: "Tâche ajoutée" });
   } catch (err) {
-    console.error("Erreur backend POST /todos:", err);
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: "Erreur lors de l'ajout de la tâche" });
   }
-});
-
-app.listen(3000, () => {
-  console.log("API is running on http://localhost:3000");
 });

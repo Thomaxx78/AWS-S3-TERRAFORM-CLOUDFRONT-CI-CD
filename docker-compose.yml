@@ -12,10 +12,10 @@ services:
       context: ./backend
     ports:
       - "3000:3000"
-    volumes:
-      - ./backend:/app
     environment:
       - AWS_REGION=eu-west-3
-      - AWS_ACCESS_KEY_ID=your_key_if_needed
-      - AWS_SECRET_ACCESS_KEY=your_secret_if_needed
+      - AWS_ACCESS_KEY_ID=your_access_key_id
+      - AWS_SECRET_ACCESS_KEY=your_secret_access_key
     command: npm start
+    # volumes:
+    #   - ~/.aws:/root/.aws:ro
