@@ -33,7 +33,7 @@ Ce projet est une application **Todo List** déployée sur AWS, utilisant :
 | Serveur              | EC2 t2.micro (Free Tier) |
 | Orchestration        | PM2                      |
 | Secrets              | AWS Secrets Manager      |
-| Frontend (optionnel) | S3 + CloudFront          |
+| Frontend             | S3 + CloudFront          |
 | Docker local         | Dockerfile pour backend  |
 
 ---
